@@ -1,0 +1,199 @@
+class LoginScreen extends StatefulWidget {
+  final int index;
+
+  final AppConfigModel configData;
+  const LoginScreen({super.key, required this.configData, required this.index});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  LoginController loginController = Get.put(LoginController());
+  final formKey = GlobalKey<FormState>();
+
+  @override
+  void initState() {
+    loginController.loginAttemts();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    loginController.userNameController.clear();
+    loginController.passwordController.clear();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    Size size = MediaQuery.of(context).size;
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text(
+          "Login",
+        ),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(
+            color: Colors.grey[300],
+            height: 1,
+          ),
+        ),
+      ),
+      body: Stack(
+        children: [
+          Form(
+            key: formKey,
+            child: ListView(
+              padding: EdgeInsets.symmetric(horizontal: size.width * 0.05),
+              children: [
+                SizedBox(
+                  height: size.height * 0.05,
+                ),
+                Text(
+                  "Hello!\nWelcome back to\n${widget.configData.libraryDetails!.libraryName}",
+                  style: const TextStyle(
+                      fontSize: 30,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black),
+                ),
+                const SizedBox(
+                  height: 25,
+                ),
+                MyTextFormField(
+                  borderColor: ColorThemes.textfieldColor,
+                  filled: true,
+                  fillColor: ColorThemes.textfieldColor,
+                  controller: loginController.userNameController,
+                  hintText: "Username",
+                  maxLines: 1,
+                  applyValidator: true,
+                ),
+                const SizedBox(
+                  height: 20,
+                ),
+                MyTextFormField(
+                  borderColor: ColorThemes.textfieldColor,
+                  filled: true,
+                  fillColor: ColorThemes.textfieldColor,
+                  controller: loginController.passwordController,
+                  hintText: "Password",
+                  applyValidator: true,
+                  isObscure: true,
+                  inputType: TextInputType.visiblePassword,
+                ),
+                SizedBox(
+                  height: size.height * 0.025,
+                ),
+                const SizedBox(
+                  height: 10,
+                ),
+                SizedBox(
+                  width: size.width,
+                  height: 50,
+                  child: MyElevatedButton(
+                      onPress: () async {
+                        if (formKey.currentState!.validate()) {
+                          loginController.loginUser(widget.index);
+                        }
+                      },
+                      buttonContent: const Text(
+                        "Login",
+                        style: TextStyle(
+                            fontSize: 20,
+                            color: Colors.white,
+                            fontWeight: FontWeight.w500),
+                      )),
+                ),
+                SizedBox(
+                  height: size.height * 0.020,
+                ),
+                const Text(
+                  "Don't have a password yet?",
+                  textAlign: TextAlign.left,
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
+                ),
+                SizedBox(
+                  height: size.height * 0.01,
+                ),
+                const Text(
+                  "If you don't have a password yet, stop by the circulation desk the next time you're in the library. We'll happily set one up for you.",
+                  textAlign: TextAlign.justify,
+                  style: TextStyle(fontSize: 15),
+                ),
+                SizedBox(
+                  height: size.height * 0.020,
+                ),
+                const Text(
+                  "Don't have a library card?",
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
+                ),
+                SizedBox(
+                  height: size.height * 0.01,
+                ),
+                const Text(
+                  "If you don't have a library card, stop by your local library to sign up.",
+                  textAlign: TextAlign.justify,
+                  style: TextStyle(fontSize: 15),
+                ),
+                const SizedBox(
+                  height: 5,
+                ),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: RichText(
+                      text: TextSpan(children: [
+                    TextSpan(
+                        text: "Contact Us",
+                        style: TextStyle(
+                            fontSize: 14,
+                            color: ColorThemes.primaryColorCode,
+                            fontWeight: FontWeight.w500),
+                        recognizer: TapGestureRecognizer()
+                          ..onTap = () async =>
+                              await LocalDatabase.getAppConfigData()
+                                  .then((value) {
+                                Navigator.push(
+                                  context,
+                                  SlideTransitionToRight(
+                                    ContactUsSrceen(
+                                      userData: null,
+                                      appConfigModel: value!,
+                                    ),
+                                  ),
+                                );
+                              }))
+                  ])),
+                )
+              ],
+            ),
+          ),
+          Obx(() => loginController.countdownStart.value != 0
+              ? Positioned(
+                  left: 0,
+                  right: 0,
+                  top: 0,
+                  bottom: 0,
+                  child: Container(
+                    height: size.height,
+                    width: size.width,
+                    color: Colors.black.withOpacity(0.7),
+                    alignment: Alignment.center,
+                    child: Text(
+                      "Try again in ${loginController.countdownStart.value} seconds",
+                      style: const TextStyle(
+                        fontSize: 20,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w400,
+                        letterSpacing: 1,
+                        decoration: TextDecoration.none,
+                      ),
+                    ),
+                  ))
+              : const SizedBox())
+        ],
+      ),
+    );
+  }
+}
