@@ -1,0 +1,442 @@
+class MyHomePage extends StatefulWidget {
+  final AppConfigModel appConfigModel;
+  final UserModel? userData;
+  const MyHomePage(
+      {super.key, required this.appConfigModel, required this.userData});
+
+  @override
+  State<MyHomePage> createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  GlobalKey<ScaffoldState> scaffoldKey = GlobalKey();
+  HomeController homeController = Get.put(HomeController());
+  final GetBranchesController branchesController =
+      Get.put(GetBranchesController());
+  @override
+  void initState() {
+    if (homeController.itemTypes.isEmpty) {
+      homeController.getItemTpes();
+    }
+    if (RequiredData.branchesList.isEmpty) {
+      branchesController.getAllBranches();
+    }
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final configData = widget.appConfigModel;
+    final userData = widget.userData;
+    Size size = MediaQuery.of(context).size;
+    return WillPopScope(
+        onWillPop: () async {
+          final timeBackPressed = DateTime.now();
+          final differeance = DateTime.now().difference(timeBackPressed);
+          if (differeance >= const Duration(seconds: 2)) {
+            return false;
+          } else {
+            SystemNavigator.pop();
+            return true;
+          }
+        },
+        child: Scaffold(
+          appBar: AppBar(
+            elevation: 5,
+            titleSpacing: -20,
+            title: ListTile(
+              leading: Container(
+                height: size.width * .11,
+                width: size.width * .15,
+                decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(4),
+                    image: DecorationImage(
+                        fit: BoxFit.contain,
+                        image: CachedNetworkImageProvider(
+                          widget.appConfigModel.libraryDetails!.libraryIcon!,
+                          cacheKey: widget
+                              .appConfigModel.libraryDetails!.libraryIcon!,
+                        ))),
+              ),
+              minLeadingWidth: 10,
+              title: Transform.translate(
+                offset: const Offset(-10, 2),
+                child: Text(widget.appConfigModel.libraryDetails!.libraryName!,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 18,
+                    )),
+              ),
+              subtitle: Transform.translate(
+                offset: const Offset(-10, 0),
+                child: Text(
+                  widget.appConfigModel.libraryDetails!.librarySlogan!,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontSize: 10),
+                ),
+              ),
+            ),
+            bottom: PreferredSize(
+              preferredSize: const Size.fromHeight(1),
+              child: Container(
+                color: Colors.grey[300],
+                height: 1,
+              ),
+            ),
+            leading: IconButton(
+                icon: const Icon(Icons.dehaze),
+                onPressed: () {
+                  if (scaffoldKey.currentState?.isDrawerOpen == false) {
+                    scaffoldKey.currentState?.openDrawer();
+                  } else {
+                    scaffoldKey.currentState?.openEndDrawer();
+                  }
+                }),
+            actions: <Widget>[
+              IconButton(
+                  icon: const Icon(Icons.search),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      SlideTransitionToRight(const AllBooksScreen()),
+                    );
+                  }),
+            ],
+          ),
+          body: Scaffold(
+            key: scaffoldKey,
+            drawer: Drawer(
+              shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.only(
+                    topRight: Radius.circular(15),
+                    bottomRight: Radius.circular(15)),
+              ),
+              elevation: 0,
+              backgroundColor: Colors.white,
+              child: ListView(
+                children: <Widget>[
+                  widget.userData != null
+                      ? Container(
+                          padding: const EdgeInsets.only(
+                              top: 20, bottom: 10, left: 10, right: 10),
+                          decoration: BoxDecoration(
+                            color: ColorThemes.primaryColorCode,
+                            border: Border.symmetric(
+                              horizontal: BorderSide(
+                                color: ColorThemes.primaryColorCode,
+                              ),
+                            ),
+                          ),
+                          child: Column(
+                            children: [
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: widget.userData!.profileImg!.isNotEmpty
+                                    ? Container(
+                                        width: size.width * 0.17,
+                                        height: size.width * 0.17,
+                                        alignment: Alignment.center,
+                                        decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            color: Colors.grey.shade200,
+                                            image: DecorationImage(
+                                                fit: BoxFit.contain,
+                                                image: FileImage(File(widget
+                                                    .userData!.profileImg!)))),
+                                      )
+                                    : Container(
+                                        width: size.width * 0.17,
+                                        height: size.width * 0.17,
+                                        alignment: Alignment.center,
+                                        decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            color: Colors.grey.shade200),
+                                        child: Center(
+                                          child: Icon(
+                                            Icons.person,
+                                            color: ColorThemes.primaryColorCode,
+                                            size: 50,
+                                          ),
+                                        ),
+                                      ),
+                              ),
+                              const SizedBox(
+                                height: 10,
+                              ),
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  Formatter.capitalizeName(
+                                      widget.userData!.user!.name!),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 2,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.normal,
+                                    fontSize: 18,
+                                    color: ColorThemes.whiteColor,
+                                  ),
+                                  softWrap: true,
+                                ),
+                              ),
+                              const SizedBox(
+                                height: 10,
+                              ),
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  userData!.user!.cardnumber!,
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    color: ColorThemes.whiteColor,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      : const SizedBox.shrink(),
+                  const SizedBox(
+                    height: 5,
+                  ),
+                  CustomTile(
+                      hasTrailingIcon: false,
+                      icon: Icons.note_add_rounded,
+                      tileName: "New Arrivals",
+                      onTap: () {
+                        Navigator.push(
+                            context,
+                            SlideTransitionToRight(NewArrivalScreen(
+                              userData: userData,
+                            )));
+                      }),
+                  ...List.generate(userActivity.length, (index) {
+                    return CustomTile(
+                      hasTrailingIcon: false,
+                      tileName: userActivity[index].tileName,
+                      onTap: () => onTapTile(index),
+                      icon: userActivity[index].icon,
+                    );
+                  }),
+                  CustomTile(
+                    hasTrailingIcon: false,
+                    tileName: userData != null ? "Logout" : "Login",
+                    onTap: () {
+                      onTapTile(4);
+                    },
+                    icon: Icons.logout,
+                  ),
+                  if (configData.webLinks != null &&
+                      configData.webLinks!.isNotEmpty) ...[
+                    Divider(
+                      color: ColorThemes.primaryColorCode,
+                    ),
+                    ...List.generate(configData.webLinks!.length, (index) {
+                      String key = configData.webLinks![index].title!;
+                      String value = configData.webLinks![index].value!;
+                      return CustomTile(
+                        hasTrailingIcon: false,
+                        tileName: key,
+                        onTap: () async {
+                          Uri uri = Uri.parse(value);
+                          if (await canLaunchUrl(uri)) {
+                            await launchUrl(
+                              uri,
+                              mode: LaunchMode.inAppBrowserView,
+                            );
+                          } else {
+                            throw 'Could not launch $uri';
+                          }
+                        },
+                        icon: Icons.arrow_upward_rounded,
+                        iconRotationAngle: 45,
+                      );
+                    }),
+                    Divider(
+                      color: ColorThemes.primaryColorCode,
+                    ),
+                  ],
+                  CustomTile(
+                      hasTrailingIcon: false,
+                      icon: Icons.note_add_rounded,
+                      tileName: "Suggestions",
+                      onTap: () {
+                        onTapTile(5);
+                      }),
+                  CustomTile(
+                    hasTrailingIcon: false,
+                    tileName: "Contact Us",
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        SlideTransitionToRight(ContactUsSrceen(
+                          userData: widget.userData,
+                          appConfigModel: widget.appConfigModel,
+                        )),
+                      );
+                    },
+                    icon: Icons.contact_page,
+                  ),
+                  CustomTile(
+                    hasTrailingIcon: false,
+                    tileName: "Share",
+                    onTap: () {
+                      Share.share(
+                          'check out Our Library App for Android and IOS.\n https://ourlib.in/app-download.html');
+                    },
+                    icon: Icons.share,
+                  ),
+                ],
+              ),
+            ),
+            body: DoubleBackToCloseApp(
+              snackBar: const SnackBar(
+                content: Text('Tap back again to leave'),
+              ),
+              child: ListView(
+                padding: EdgeInsets.symmetric(
+                    horizontal: size.width * 0.02,
+                    vertical: size.height * 0.02),
+                children: [
+                  CarouselWidget(
+                    imgUrls: configData.libraryDetails!.posterLinks!,
+                  ),
+                  const SizedBox(
+                    height: 15,
+                  ),
+                  Obx(() {
+                    if (homeController.itemTypesLoading.isTrue &&
+                        homeController.itemTypes.isEmpty) {
+                      return Container(
+                        height: size.height * 0.2,
+                        alignment: Alignment.center,
+                        child: LoadingWidgets.buttonLoading(
+                            color: ColorThemes.primaryColorCode),
+                      );
+                    } else if (homeController.appException != null &&
+                        homeController.itemTypesLoading.isFalse &&
+                        homeController.itemTypes.isEmpty) {
+                      return TryAgainWidget(
+                        message: homeController.appException!.message ??
+                            "Something went wrong",
+                        onPress: () {
+                          homeController.getItemTpes();
+                        },
+                        showButton:
+                            homeController.appException!.statusCode != 404,
+                      );
+                    } else if (homeController.itemTypes.isNotEmpty) {
+                      return CustomItemTypeCarousel(
+                        itemTypes: homeController.itemTypes,
+                      );
+                    }
+                    return Container();
+                  }),
+                  const SizedBox(
+                    height: 15,
+                  ),
+                  HtmlWidget(
+                    configData.libraryDetails!.aboutLibrary!,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ));
+  }
+
+  Future<void> onTapTile(int index) async {
+    if (widget.userData == null) {
+      Navigator.push(
+        context,
+        SlideTransitionToRight(LoginScreen(
+          index: index,
+          configData: widget.appConfigModel,
+        )),
+      );
+    } else {
+      switch (index) {
+        case 0:
+          Navigator.push(
+            context,
+            SlideTransitionToRight(PaymentHistoryScreen(
+              userData: widget.userData!,
+              configData: widget.appConfigModel,
+            )),
+          );
+          break;
+        case 1:
+          Navigator.push(
+            context,
+            SlideTransitionToRight(IssuedBooksScreen(
+              userData: widget.userData!,
+              configData: widget.appConfigModel,
+            )),
+          );
+          break;
+        case 2:
+          Navigator.push(
+            context,
+            SlideTransitionToRight(ReadingHistoryScreen(
+              userData: widget.userData!,
+              configModel: widget.appConfigModel,
+            )),
+          );
+          break;
+        case 3:
+          Navigator.push(
+            context,
+            SlideTransitionToRight(HoldedBookScreen(
+              userData: widget.userData!,
+              configData: widget.appConfigModel,
+            )),
+          );
+          break;
+        case 4:
+          await LocalDatabase.deleteUserData().then((value) {
+            Navigator.pop(context);
+            showDialog(
+              barrierDismissible: false,
+              context: context,
+              builder: (BuildContext context) {
+                return const SuccessLoginDialog(
+                  successMessage: "You have been logged out!",
+                );
+              },
+            );
+          });
+          break;
+        case 5:
+          Navigator.push(
+            context,
+            SlideTransitionToRight(ShowSuggestion(
+              userData: widget.userData!,
+              configData: widget.appConfigModel,
+            )),
+          );
+          break;
+        default:
+          Navigator.push(
+            context,
+            SlideTransitionToRight(LoginScreen(
+              index: index,
+              configData: widget.appConfigModel,
+            )),
+          );
+      }
+    }
+  }
+}
+
+List<UserActivityModel> userActivity = [
+  UserActivityModel(icon: Icons.payment, tileName: "Payment Details"),
+  UserActivityModel(icon: Icons.bookmark_added, tileName: "Issued Books"),
+  UserActivityModel(icon: Icons.history, tileName: "Reading History"),
+  UserActivityModel(icon: Icons.book, tileName: "Hold Book"),
+];
+
+class UserActivityModel {
+  final IconData icon;
+  final String tileName;
+  UserActivityModel({required this.icon, required this.tileName});
+}
