@@ -1,0 +1,123 @@
+import 'dart:convert';
+
+import 'package:get_storage/get_storage.dart';
+
+import '../models/app_config_model/app_config_model.dart';
+import '../models/login_failed_model/login_failed_model.dart';
+import '../models/search_history_model/search_history_model.dart';
+import '../models/user_model/user_model.dart';
+
+class LocalDatabase {
+  static Future<void> saveAppConfigData(AppConfigModel configData) async {
+    final data = configData.toJson();
+    final GetStorage storage = GetStorage();
+    await storage.write("config_key", jsonEncode(data));
+  }
+
+  static Future<AppConfigModel?> getAppConfigData() async {
+    final GetStorage storage = GetStorage();
+    final data = storage.read("config_key");
+    if (data != null) {
+      return AppConfigModel.fromJson(jsonDecode(data));
+    } else {
+      return null;
+    }
+  }
+
+  static Future<void> saveUserData(UserModel userData) async {
+    final GetStorage storage = GetStorage();
+    final data = userData.toJson();
+    await storage.write("user_data", jsonEncode(data));
+  }
+
+  static Future<UserModel?> getUserData() async {
+    final GetStorage storage = GetStorage();
+    final data = storage.read("user_data");
+    if (data != null) {
+      return UserModel.fromJson(jsonDecode(data));
+    } else {
+      return null;
+    }
+  }
+
+  static Future<void> deleteUserData() async {
+    final GetStorage storage = GetStorage();
+    await storage.remove("user_data");
+  }
+
+  Future<void> saveSearchHistoryData(
+      List<SearchHistoryModel> searchHistory) async {
+    final GetStorage storage = GetStorage();
+    List<SearchHistoryModel> list = await LocalDatabase.getSearchHistory();
+    list.addAll(searchHistory);
+    final jsonData = list.map((item) => item.toJson()).toList();
+    await storage.write("searchHistory", jsonEncode(jsonData));
+  }
+
+  static Future<List<SearchHistoryModel>> getSearchHistory() async {
+    final GetStorage storage = GetStorage();
+    final jsonData = storage.read("searchHistory");
+    if (jsonData != null) {
+      List<dynamic> parsedData = jsonDecode(jsonData);
+      List<SearchHistoryModel> data = parsedData
+          .map<SearchHistoryModel>((item) => SearchHistoryModel.fromJson(item))
+          .toList();
+      return data;
+    } else {
+      return [];
+    }
+  }
+
+  static Future<void> deleteSearchHistoryData() async {
+    final GetStorage storage = GetStorage();
+    await storage.remove("searchHistory");
+  }
+
+  static Future<void> updateSearchHistory(String q) async {
+    final data = await LocalDatabase.getSearchHistory();
+    data.removeWhere((item) =>
+        item.keywords!.toLowerCase().trim() == q.toLowerCase().trim());
+    SearchHistoryModel newSearch =
+        SearchHistoryModel(keywords: q, datetime: DateTime.now().toString());
+    data.insert(0, newSearch);
+    final GetStorage storage = GetStorage();
+    await storage.remove("searchHistory");
+    await LocalDatabase().saveSearchHistoryData(data);
+  }
+
+  static Future<void> deleteSingleItem(String q) async {
+    final data = await LocalDatabase.getSearchHistory();
+    data.removeWhere((item) => item.keywords == q);
+    final GetStorage storage = GetStorage();
+    await storage.remove("searchHistory");
+    await LocalDatabase().saveSearchHistoryData(data);
+  }
+
+  static Future<void> saveLoginFailedData(
+      List<LoginFailedModel> loginFail) async {
+    final GetStorage storage = GetStorage();
+    List<LoginFailedModel> list = await LocalDatabase.getLoginFailedData();
+    list.addAll(loginFail);
+    final jsonData = list.map((item) => item.toJson()).toList();
+    await storage.write("loginFail", jsonEncode(jsonData));
+  }
+
+  static Future<List<LoginFailedModel>> getLoginFailedData() async {
+    final GetStorage storage = GetStorage();
+    final jsonData = storage.read("loginFail");
+    if (jsonData != null) {
+      List<dynamic> parsedData = jsonDecode(jsonData);
+      List<LoginFailedModel> data = parsedData
+          .map<LoginFailedModel>((item) => LoginFailedModel.fromJson(item))
+          .toList();
+      return data;
+    } else {
+      return [];
+    }
+  }
+
+  static Future<void> deleteLoginFailedData() async {
+    final GetStorage storage = GetStorage();
+    await storage.remove("loginFail");
+  }
+}
