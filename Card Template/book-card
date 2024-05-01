@@ -1,0 +1,203 @@
+class BookCard extends StatefulWidget {
+  final String title;
+  final String author;
+  final String imageUrl;
+
+  BookCard({
+    required this.title,
+    required this.author,
+    required this.imageUrl,
+  });
+
+  @override
+  State<BookCard> createState() => _BookCardState(imageUrl);
+}
+
+class _BookCardState extends State<BookCard> {
+
+  String  isbn;
+  _BookCardState(this. isbn);
+  String coverImage = '';
+  bool loder = true;
+  var BASEURL = appdata.read('BASE_URL');
+
+  @override
+  void initState() {
+    super.initState();
+    setState(() {
+      fetchBookCover();
+    });
+  }
+
+  Future<Size> _calculateImageDimension(coverImage) {
+    Completer<Size> completer = Completer();
+    Image image = Image.network(coverImage);
+    image.image.resolve(ImageConfiguration()).addListener(
+      ImageStreamListener(
+            (ImageInfo image, bool synchronousCall) {
+          var myImage = image.image;
+          Size size = Size(myImage.width.toDouble(), myImage.height.toDouble());
+          completer.complete(size);
+        },
+      ),
+    );
+    return completer.future;
+  }
+
+
+
+  Future<void> fetchBookCover() async {
+
+    final url = BASEURL+'/cover-image?isbn=$isbn'; // Amazon search URL
+    var  response = await http.get(Uri.parse(url));
+
+    CoverImageModel product;
+    var resposne = response;
+    if (response.statusCode == 200) {
+
+      var data = jsonDecode(resposne.body.toString());
+      product = CoverImageModel.fromJson(data);
+
+      print("object::"+response.body.toString());
+      if (product.coverImageLink != null) {
+        setState(() {
+          coverImage = product.coverImageLink!;
+          _calculateImageDimension(coverImage).then((size) => {
+            print("size"+size.toString()),
+               if(size.width < 5){
+                 setState(() {
+                   print("size1"+size.toString());
+                   coverImage = BASEURL+"/static/noCoverImage.png";
+                   loder = false;
+                 })
+               },
+               if(size.width > 5){
+                 setState(() {
+                   print("size2"+size.toString());
+                   coverImage = product.coverImageLink.toString();
+                   loder = false;
+                 })
+               }
+
+          });
+        });
+      }
+      else{
+        setState(() {
+          loder = false;
+          coverImage = BASEURL+"/static/noCoverImage.png";
+        });
+      }
+    } else {
+      setState(() {
+        loder = false;
+        coverImage = BASEURL+"/static/noCoverImage.png";
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    var color = appdata.read('ColorPrimary');
+    String primaryColoCode = color.replaceAll('#','0xff');
+
+    var TextColor = appdata.read('TextColor');
+    String TextColorString = TextColor.replaceAll('#','0xff');
+
+    return Container(
+        child: Container(
+          margin: EdgeInsets.all(2.0),
+          decoration: BoxDecoration(
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                spreadRadius: 1,
+                blurRadius: 6,
+                offset: Offset(0, 2),
+              ),
+            ],
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.only(left: 2.0,right: 2.0),
+            child: Card(
+              // elevation: 3,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8.0),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Container(
+                    child: Expanded(
+                      child: GestureDetector(
+                        child: Center(
+                          child: loder
+                              ? CircularProgressIndicator(
+                            color: Color(int.parse(primaryColoCode)),
+                          )
+                              : Padding(
+                                padding: const EdgeInsets.only(left: 25,right: 25,top: 18),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(6.0),
+                                  child: CachedNetworkImage(imageUrl: '$coverImage',
+                            height: MediaQuery.of(context).size.height * 0.5,
+                            width: MediaQuery.of(context).size.width,
+                            fit: BoxFit.fill,
+                          ),
+                                ),
+                              ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        height: 40,
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Center(
+                            child: Text(
+                              widget.title,
+                              textAlign: TextAlign.center,
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                              style: TextStyle(
+                                fontSize: 16,
+                                // fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 4.0,left: 4.0,right: 4.0),
+                          child: Container(
+                            height: 35,
+                            child: Text(
+                              widget.author,
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 15,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              // Additional card content...
+            ),
+          ),
+        ));
+  }
+}
