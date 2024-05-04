@@ -1,0 +1,84 @@
+import 'package:flutter/material.dart';
+
+class BorrowBookScreen extends StatefulWidget {
+  final UserModel? userData;
+  final BookModel book; // Assuming you have a BookModel class defined
+  const BorrowBookScreen({Key? key, required this.userData, required this.book}) : super(key: key);
+
+  @override
+  _BorrowBookScreenState createState() => _BorrowBookScreenState();
+}
+
+class _BorrowBookScreenState extends State<BorrowBookScreen> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          'Borrow Book',
+        ),
+      ),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.all(20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Book Details',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 10),
+            Text(
+              'Title: ${widget.book.title}',
+              style: TextStyle(fontSize: 16),
+            ),
+            SizedBox(height: 10),
+            Text(
+              'Author: ${widget.book.author}',
+              style: TextStyle(fontSize: 16),
+            ),
+            SizedBox(height: 20),
+            Text(
+              'Borrower Information',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 10),
+            // You can add form fields here for borrower information
+            // For example:
+            TextFormField(
+              decoration: InputDecoration(
+                labelText: 'Borrower Name',
+              ),
+            ),
+            SizedBox(height: 10),
+            TextFormField(
+              decoration: InputDecoration(
+                labelText: 'Borrower ID',
+              ),
+            ),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () {
+                // Implement borrow book functionality here
+                // You can send the borrow request to your backend or handle it locally
+                // For demonstration purposes, let's just show a snackbar
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('Book borrowed successfully!'),
+                  ),
+                );
+              },
+              child: Text('Borrow'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
