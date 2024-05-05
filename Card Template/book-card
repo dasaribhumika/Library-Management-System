@@ -48,7 +48,7 @@ class _BookCardState extends State<BookCard> {
 
   Future<void> fetchBookCover() async {
 
-    final url = BASEURL+'/cover-image?isbn=$isbn'; // Amazon search URL
+    final url = BASEURL+'/cover-image?isbn=$isbn'; // search URL
     var  response = await http.get(Uri.parse(url));
 
     CoverImageModel product;
@@ -195,7 +195,7 @@ class _BookCardState extends State<BookCard> {
                   ),
                 ],
               ),
-              // Additional card content...
+              // Additional card content added...
             ),
           ),
         ));
