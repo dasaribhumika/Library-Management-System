@@ -58,7 +58,7 @@ class _ShowSuggestionState extends State<ShowSuggestion> {
           title: const Text(
             "Suggestions",
           ),
-          bottom: PreferredSize(
+          bottom: PreferrableSize(
             preferredSize: const Size.fromHeight(1),
             child: Container(
               color: Colors.grey[300],
