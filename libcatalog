@@ -1,0 +1,187 @@
+Scaffold(
+            key: scaffoldKey,
+            drawer: Drawer(
+              shape: const RoundedRectangleBorder(
+                borderRadius: BorderRadius.only(
+                    topRight: Radius.circular(15),
+                    bottomRight: Radius.circular(15)),
+              ),
+              elevation: 0,
+              backgroundColor: Colors.white,
+              child: ListView(
+                children: <Widget>[
+                  widget.userData != null
+                      ? Container(
+                          padding: const EdgeInsets.only(
+                              top: 20, bottom: 10, left: 10, right: 10),
+                          decoration: BoxDecoration(
+                            color: ColorThemes.primaryColorCode,
+                            border: Border.symmetric(
+                              horizontal: BorderSide(
+                                color: ColorThemes.primaryColorCode,
+                              ),
+                            ),
+                          ),
+                          child: Column(
+                            children: [
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: widget.userData!.profileImg!.isNotEmpty
+                                    ? Container(
+                                        width: size.width * 0.17,
+                                        height: size.width * 0.17,
+                                        alignment: Alignment.center,
+                                        decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            color: Colors.grey.shade200,
+                                            image: DecorationImage(
+                                                fit: BoxFit.contain,
+                                                image: FileImage(File(widget
+                                                    .userData!.profileImg!)))),
+                                      )
+                                    : Container(
+                                        width: size.width * 0.17,
+                                        height: size.width * 0.17,
+                                        alignment: Alignment.center,
+                                        decoration: BoxDecoration(
+                                            shape: BoxShape.circle,
+                                            color: Colors.grey.shade200),
+                                        child: Center(
+                                          child: Icon(
+                                            Icons.person,
+                                            color: ColorThemes.primaryColorCode,
+                                            size: 50,
+                                          ),
+                                        ),
+                                      ),
+                              ),
+                              const SizedBox(
+                                height: 10,
+                              ),
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  Formatter.capitalizeName(
+                                      // widget.userData!.user!.name!
+                                    'Group 7'
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 2,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.normal,
+                                    fontSize: 18,
+                                    color: ColorThemes.whiteColor,
+                                  ),
+                                  softWrap: true,
+                                ),
+                              ),
+                              const SizedBox(
+                                height: 10,
+                              ),
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  'Card Number',
+                                  // userData!.user!.cardnumber!,
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    color: ColorThemes.whiteColor,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      : const SizedBox.shrink(),
+                  const SizedBox(
+                    height: 5,
+                  ),
+                  CustomTile(
+                      hasTrailingIcon: false,
+                      icon: Icons.note_add_rounded,
+                      tileName: "New Arrivals",
+                      onTap: () {
+                        Navigator.push(
+                            context,
+                            SlideTransitionToRight(NewArrivalScreen(
+                              userData: userData,
+                            )));
+                      }),
+                  ...List.generate(userActivity.length, (index) {
+                    return CustomTile(
+                      hasTrailingIcon: false,
+                      tileName: userActivity[index].tileName,
+                      onTap: () => onTapTile(index),
+                      icon: userActivity[index].icon,
+                    );
+                  }),
+                  CustomTile(
+                    hasTrailingIcon: false,
+                    tileName: userData != null ? "Logout" : "Login",
+                    onTap: () {
+                      onTapTile(4);
+                    },
+                    icon: Icons.logout,
+                  ),
+                  if (configData.webLinks != null &&
+                      configData.webLinks!.isNotEmpty) ...[
+                    Divider(
+                      color: ColorThemes.primaryColorCode,
+                    ),
+                    // ...List.generate(configData.webLinks!.length, (index) {
+                    //   String key = configData.webLinks![index].title!;
+                    //   String value = configData.webLinks![index].value!;
+                    //   return CustomTile(
+                    //     hasTrailingIcon: false,
+                    //     tileName: key,
+                    //     onTap: () async {
+                    //       Uri uri = Uri.parse(value);
+                    //       if (await canLaunchUrl(uri)) {
+                    //         await launchUrl(
+                    //           uri,
+                    //           mode: LaunchMode.inAppBrowserView,
+                    //         );
+                    //       } else {
+                    //         throw 'Could not launch $uri';
+                    //       }
+                    //     },
+                    //     icon: Icons.arrow_upward_rounded,
+                    //     iconRotationAngle: 45,
+                    //   );
+                    // }),
+                    // Divider(
+                    //   color: ColorThemes.primaryColorCode,
+                    // ),
+                  ],
+                  CustomTile(
+                      hasTrailingIcon: false,
+                      icon: Icons.note_add_rounded,
+                      tileName: "Suggestions",
+                      onTap: () {
+                        onTapTile(5);
+                      }),
+                  CustomTile(
+                    hasTrailingIcon: false,
+                    tileName: "Contact Us",
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        SlideTransitionToRight(ContactUsSrceen(
+                          userData: widget.userData,
+                          appConfigModel: widget.appConfigModel,
+                        )),
+                      );
+                    },
+                    icon: Icons.contact_page,
+                  ),
+                  CustomTile(
+                    hasTrailingIcon: false,
+                    tileName: "Share",
+                    onTap: () {
+                      Share.share(
+                          'check out Our Library App for Android and IOS.\n https://ourlib.in/app-download.html');
+                    },
+                    icon: Icons.share,
+                  ),
+                ],
+              ),
