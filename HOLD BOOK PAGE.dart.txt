@@ -1,0 +1,187 @@
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+
+import '../../controllers/hold_book_controller.dart';
+import '../../data/models/app_config_model/app_config_model.dart';
+import '../../data/models/user_model/user_model.dart';
+import '../../utils/color_themes.dart';
+import '../../utils/page_transition.dart';
+import '../../widgets/cover_image.dart';
+import '../../widgets/loading_widgets.dart';
+import '../../widgets/my_button.dart';
+import '../../widgets/try_again_widget.dart';
+import '../home page/home_page.dart';
+
+class HoldedBookScreen extends StatefulWidget {
+  final AppConfigModel configData;
+  final UserModel userData;
+  const HoldedBookScreen(
+      {super.key, required this.userData, required this.configData});
+
+  @override
+  State<HoldedBookScreen> createState() => _HoldedBookScreenState();
+}
+
+class _HoldedBookScreenState extends State<HoldedBookScreen> {
+  HoldBookController holdBookController = Get.put(HoldBookController());
+
+  @override
+  void initState() {
+    holdBookController.getHoldBook(widget.userData.token!);
+    super.initState();
+  }
+
+  Future<bool> onWillPop(bool getBack) async {
+    Navigator.pushAndRemoveUntil(
+        context,
+        SlideTransitionToLeft(MyHomePage(
+          appConfigModel: widget.configData,
+          userData: widget.userData,
+        )),
+        (Route<dynamic> route) => false);
+
+    return Future.value(getBack);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final Size size = MediaQuery.of(context).size;
+    return PopScope(
+      canPop: false,
+      onPopInvoked: onWillPop,
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text(
+            'Hold Books',
+          ),
+          bottom: PreferredSize(
+            preferredSize: const Size.fromHeight(1),
+            child: Container(
+              color: Colors.grey[300],
+              height: 1,
+            ),
+          ),
+        ),
+        body: Obx(() {
+          if (holdBookController.holdBooksLoading.isTrue &&
+              holdBookController.books.isEmpty) {
+            return Center(
+              child: LoadingWidgets.buttonLoading(
+                  color: ColorThemes.primaryColorCode),
+            );
+          } else if (holdBookController.appException != null &&
+              holdBookController.holdBooksLoading.isFalse &&
+              holdBookController.books.isEmpty) {
+            return Center(
+              child: TryAgainWidget(
+                message: holdBookController.appException!.message!,
+                onPress: () {
+                  holdBookController.getHoldBook(widget.userData.token!);
+                },
+                showButton: holdBookController.appException!.statusCode != 404,
+              ),
+            );
+          } else if (holdBookController.holdBooksLoading.isFalse &&
+              holdBookController.books.isEmpty) {
+            return const Center(
+              child: TryAgainWidget(
+                message: "No Results Found",
+                showButton: false,
+              ),
+            );
+          } else if (holdBookController.holdBooksLoading.isFalse &&
+              holdBookController.books.isNotEmpty) {
+            return ListView.separated(
+              physics: const AlwaysScrollableScrollPhysics(),
+              separatorBuilder: (context, index) => const Divider(
+                color: Colors.transparent,
+                height: 5,
+              ),
+              itemCount: holdBookController.books.length,
+              itemBuilder: (context, index) {
+                final data = holdBookController.books[index];
+                return Container(
+                  width: size.width * 0.437,
+                  margin:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      color: Colors.white,
+                      border:
+                          Border.all(color: Colors.black.withOpacity(0.05))),
+                  child: Row(
+                    children: [
+                      CoverImage(
+                        image: data.coverImage!,
+                        width: size.width * 0.22,
+                        height: size.width * 0.3,
+                      ),
+                      const SizedBox(width: 5),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SizedBox(
+                              height: size.width * 0.02,
+                            ),
+                            Text(
+                              data.title!.trim(),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.black),
+                            ),
+                            Text(
+                              'Placed On: ${data.placedOnDate!.trim()}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w400,
+                                  color: Colors.black54),
+                            ),
+                            Text(
+                              'Available at: ${data.availableAt!.trim()}',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w400,
+                                  color: Colors.black54),
+                            ),
+                            SizedBox(
+                              width: size.width * 0.3,
+                              child: MyElevatedButton(
+                                buttonColor: ColorThemes.redColor,
+                                onPress: () async {
+                                  holdBookController.cancelHoldBook(
+                                      data.biblioNumber!,
+                                      data.reserveId!,
+                                      index);
+                                },
+                                buttonContent: const Text(
+                                  "Cancel",
+                                  style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w400,
+                                      color: Colors.white),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            );
+          }
+          return Container();
+        }),
+      ),
+    );
+  }
+}
