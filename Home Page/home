@@ -439,4 +439,4 @@ class UserActivityModel {
   final IconData icon;
   final String tileName;
   UserActivityModel({required this.icon, required this.tileName});
-}
+} // User Activity model
